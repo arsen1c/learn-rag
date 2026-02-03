@@ -1,0 +1,1 @@
+- [ ] Improve embedding speed for HF, switch to local Ollama version for now
