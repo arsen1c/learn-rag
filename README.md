@@ -1,6 +1,6 @@
-# learn-rag
+ # Installation
 
-To install dependencies:
+ To install dependencies:
 
 ```bash
 bun install
@@ -9,7 +9,9 @@ bun install
 To run:
 
 ```bash
-bun run index.ts
+bun run src/{0-9}_*.ts
 ```
 
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+# Resources
+- (Great Read) [Build a RAG agent with langChain](https://docs.langchain.com/oss/javascript/langchain/rag#chroma)
+- [Chroma vector store integration with langchain](https://docs.langchain.com/oss/javascript/integrations/vectorstores/chroma)

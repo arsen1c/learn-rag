@@ -63,7 +63,8 @@ import { embeddings } from "./config/embedding"
 
 // Single file loader
 async function loadDocuments() {
-    const fileName = path.join(process.cwd(), "docs", "Google.txt")
+    // can change the end file name
+    const fileName = path.join(process.cwd(), "docs", "Microsoft.txt")
 
     const loader = new TextLoader(fileName)
     const documents = await loader.load()
@@ -123,23 +124,3 @@ async function main() {
 }
 
 main();
-
-// console.log(finalChunks[0])
-
-// const loader = new TextLoader(filepath)
-
-// const docs = await loader.load()
-// console.log(docs[0]?.pageContent.slice(0, 10))
-// console.log(docs[0]?.metadata)
-
-
-// const allSplits = await splitter.splitDocuments(docs)
-// console.log(JSON.stringify(allSplits[0], null, 2)) // {pageContent, metadata}
-
-// await vectorStore.addDocuments(allSplits)
-
-// const retrieved = await vectorStore.similaritySearch("How much google paid to the UK in settlement?", 2)
-// vectorStore.similaritySearch("query", 2, { source: "tweets" }); // Metadata filtering
-
-// console.log(retrieved)
-
