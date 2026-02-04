@@ -7,5 +7,6 @@ export const ChromaService = {
     fromDocuments: async (chunks: Document[]) =>
         Chroma.fromDocuments(chunks, embeddings, chromaConfig),
     fromExistingCollection: async () =>
-        Chroma.fromExistingCollection(embeddings, chromaConfig)
+        Chroma.fromExistingCollection(embeddings, chromaConfig),
+
 }
