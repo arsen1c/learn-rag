@@ -1,15 +1,15 @@
 import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
-import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory"
-import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf"
-import { ChatOpenAI } from "@langchain/openai"
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
 import path from "path"
+import { Chroma } from "@langchain/community/vectorstores/chroma"
+import { chromaConfig } from "./config/chroma"
+import { embeddings } from "./config/embedding"
 
 /**
  * Steps
  * 1. Load the file (text, pdf etc) into the Loader
  *      - Loader will load the file, returns the id, metadata & pageContent
- * 2. Pass this loaded doc into the splitter
+ * 2. Split the documents into small chunks
  *      - Spliiter will split the whole document into chunks based on the chunkSize we pass in the splitter
  * 3. Add the splits into the Vector to create a vector entry
  * 
@@ -20,33 +20,126 @@ import path from "path"
  */
 
 
-const embeddings = new HuggingFaceInferenceEmbeddings({
-    model: "sentence-transformers/all-mpnet-base-v2",
-    apiKey: process.env.HF_API_KEY
-})
-console.log(process.env.HF_API_KEY)
 
-const vectorStore = new MemoryVectorStore(embeddings);
+// const vectorStore = new MemoryVectorStore(embeddings);
 
-const filepath = path.join(process.cwd(), "docs", "Google.txt")
+/**
+ * -------------- Load Documents --------------
+ * 
+ * Load all the documents in the docs folder
+ */
+// const folderPath = path.join(process.cwd(), "docs") // set the folder path
 
-const loader = new TextLoader(filepath)
+// Directory Loader
+// async function loadDocuments(docsPath: string = folderPath) {
+//     console.log(`Loading documents from ${docsPath}...`)
 
-const docs = await loader.load()
+//     // throw an error if directory doesnt exist
+//     if (!fs.existsSync(docsPath)) {
+//         throw new Error(`Directory ${docsPath} does not exist.`)
+//     }
+
+//     // load all the files from the directory. specifically .txt
+//     const loader = new DirectoryLoader(docsPath, {
+//         ".txt": (p) => new TextLoader(p)
+//     })
+
+//     const documents = await loader.load() // load the directoryloader. each document will have these keys [ "pageContent", "metadata", "id" ]
+//     console.log(`Total documents loaded: ${documents.length}`)
+
+//     if (documents.length === 0) throw new Error(`No .txt files found in ${docsPath}`)
+
+//     // Print metadata about 1st 2 documents
+//     documents.forEach((doc, i) => {
+//         console.log(`Document ${i + 1}`)
+//         console.log(`Source: ${doc.metadata.source}\n`)
+//     })
+
+//     // return the documents chunks to be loaded in the embedding model
+//     return documents
+// }
+
+// await loadDocuments()
+
+// Single file loader
+async function loadDocuments() {
+    const fileName = path.join(process.cwd(), "docs", "Google.txt")
+
+    const loader = new TextLoader(fileName)
+    const documents = await loader.load()
+
+    return documents
+}
+
+
+/**
+ * -------------- Split Documents --------------
+ */
+async function splitDocuments(documents: any[]) {
+    console.log(`Splitting documents into chunks...`)
+
+    const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1500, // split into 1k chunks each
+        chunkOverlap: 200
+    })
+
+    const chunks = await splitter.splitDocuments(documents) // splits the document into chunks based on the chunkSize
+
+    chunks.slice(0, 5).forEach((chunk, i) => {
+        console.log(`--- Chunk ${i + 1} ---`)
+        console.log(`Source: ${chunk.metadata.source}`)
+    })
+
+    return chunks
+}
+
+
+/**
+ * -------------- Create Vector Store --------------
+ */
+async function createVectorStore(chunks: any[]) {
+    // inspect chunk
+    const vecquery = await embeddings.embedQuery(chunks[0].pageContent)
+    console.log(vecquery.slice(0, 10)) // print 10 embeds
+
+    const vectorStore = await Chroma.fromDocuments(chunks, embeddings, chromaConfig);
+
+    console.log("Vector store created")
+
+    return vectorStore
+}
+
+/**
+ * -------------- Main pipeline --------------
+ */
+async function main() {
+    console.log("=== RAG Ingestion Pipeline ===\n");
+
+    const documents = await loadDocuments();
+    const chunks = await splitDocuments(documents);
+    await createVectorStore(chunks);
+
+    console.log("\nIngestion complete!");
+}
+
+main();
+
+// console.log(finalChunks[0])
+
+// const loader = new TextLoader(filepath)
+
+// const docs = await loader.load()
 // console.log(docs[0]?.pageContent.slice(0, 10))
 // console.log(docs[0]?.metadata)
 
-const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200
-})
 
-const allSplits = await splitter.splitDocuments(docs)
-console.log(JSON.stringify(allSplits[0], null, 2))
+// const allSplits = await splitter.splitDocuments(docs)
+// console.log(JSON.stringify(allSplits[0], null, 2)) // {pageContent, metadata}
 
-await vectorStore.addDocuments(allSplits)
+// await vectorStore.addDocuments(allSplits)
 
-const retrieved = await vectorStore.similaritySearch("How much google paid to the UK in settlement?", 2)
+// const retrieved = await vectorStore.similaritySearch("How much google paid to the UK in settlement?", 2)
+// vectorStore.similaritySearch("query", 2, { source: "tweets" }); // Metadata filtering
 
-console.log(retrieved)
+// console.log(retrieved)
 
