@@ -70,8 +70,8 @@ async function main() {
             if (!lastMessage) continue;
 
             // Get message type from constructor name (HumanMessage -> human, AIMessage -> ai, etc.)
-            const messageType = lastMessage.constructor.name.replace('Message', '').toLowerCase();
-            console.log(`[${messageType}]: ${lastMessage.content}`);
+            // const messageType = lastMessage.constructor.name.replace('Message', '').toLowerCase();
+            console.log(`[${lastMessage.constructor.name}]: ${lastMessage.content}`);
             console.log("-----\n");
         }
 

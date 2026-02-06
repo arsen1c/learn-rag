@@ -64,7 +64,7 @@ import { embeddings } from "./config/embedding"
 // Single file loader
 async function loadDocuments() {
     // can change the end file name
-    const fileName = path.join(process.cwd(), "docs", "Google.txt")
+    const fileName = path.join(process.cwd(), "docs", "Microsoft.txt")
 
     const loader = new TextLoader(fileName)
     const documents = await loader.load()
