@@ -42,53 +42,26 @@ const agent = createAgent({
 })
 
 async function main() {
-    // Use a consistent thread_id to maintain conversation history
-    const config = { configurable: { thread_id: "main-conversation" } };
+    const config = {
+        configurable: {
+            thread_id: "main-conversation" // Change this to create different conversation threads
+        }
+    };
 
     while (true) {
         const userInput = await getQuestion()
 
         if (userInput === "/bye") break
 
-        // const results = await vectorStore.similaritySearch(userInput, 2)
+        // pass config as the second argument to maintain history!
+        // without it, each invoke() call starts a fresh conversation
+        const response = await agent.invoke({
+            messages: [{
+                role: "user", content: userInput
+            }]
+        }, config) // pass config here to maintain conversation history
 
-        const agentInputs = {
-            messages: [{ role: "user", content: userInput }],
-        };
-
-        try {
-            const stream = await agent.stream(agentInputs, {
-                ...config,
-                streamMode: "values",
-            });
-
-            for await (const step of stream) {
-                const lastMessage = step.messages[step.messages.length - 1];
-                if (!lastMessage) continue;
-
-                // Get message type from constructor name (HumanMessage -> human, AIMessage -> ai, etc.)
-                // const messageType = lastMessage.constructor.name.replace('Message', '').toLowerCase();
-                console.log(`[${lastMessage.constructor.name}]: ${lastMessage.content}`);
-                console.log("-----\n");
-            }
-        } catch (error: any) {
-            // Handle tool calling errors gracefully
-            if (error?.status === 400 && error?.error?.code === "tool_use_failed") {
-                console.error("\n️  Error: Failed to call tool. The query may be too vague or malformed.");
-                console.error(" Tip: Try asking a more complete question, or add context to your follow-up question.\n");
-
-                // Try to extract the failed query from the error
-                const failedGeneration = error?.error?.failed_generation;
-                if (failedGeneration) {
-                    console.error(`Failed query: ${failedGeneration}\n`);
-                }
-            } else {
-                // Re-throw other errors
-                console.error("Error:", error);
-                throw error;
-            }
-        }
-
+        console.log("\n\nAI Answer:", response.messages.at(-1)?.content) // get the last item i.e the final AI message
     }
 }
 

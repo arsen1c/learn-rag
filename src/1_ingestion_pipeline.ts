@@ -99,9 +99,10 @@ async function splitDocuments(documents: any[]) {
  * -------------- Create Vector Store --------------
  */
 async function createVectorStore(chunks: any[]) {
-    // inspect chunk
+    // inspect chunk - for dev purpose only
     const vecquery = await embeddings.embedQuery(chunks[0].pageContent)
     console.log(vecquery.slice(0, 10)) // print 10 embeds
+    // inspect chunk - for dev purpose only
 
     const vectorStore = await Chroma.fromDocuments(chunks, embeddings, chromaConfig);
 

@@ -58,22 +58,34 @@ async function main() {
 
         // const results = await vectorStore.similaritySearch(userInput, 2)
 
-        const agentInputs = {
-            messages: [{ role: "user", content: userInput }],
-        };
+        const response = await agent.invoke({
+            messages: [
+                { role: "user", content: userInput }
+            ]
+        })
 
-        const stream = await agent.stream(agentInputs, {
-            streamMode: "values",
-        });
-        for await (const step of stream) {
-            const lastMessage = step.messages[step.messages.length - 1];
-            if (!lastMessage) continue;
+        console.log("\n\nAI Answer:", response.messages.at(-1)?.content) // get the last item i.e the final AI message
+        // ------------------ UnComment if needed streams version  ------------------
 
-            // Get message type from constructor name (HumanMessage -> human, AIMessage -> ai, etc.)
-            // const messageType = lastMessage.constructor.name.replace('Message', '').toLowerCase();
-            console.log(`[${lastMessage.constructor.name}]: ${lastMessage.content}`);
-            console.log("-----\n");
-        }
+        // const agentInputs = {
+        //     messages: [{ role: "user", content: userInput }],
+        // };
+
+        // Why not invoke method instead of stream?
+        // const stream = await agent.stream(agentInputs, {
+        //     streamMode: "values",
+        // });
+
+        // for await (const step of stream) {
+        //     const lastMessage = step.messages[step.messages.length - 1];
+        //     if (!lastMessage) continue;
+
+        //     // Get message type from constructor name (HumanMessage -> human, AIMessage -> ai, etc.)
+        //     // const messageType = lastMessage.constructor.name.replace('Message', '').toLowerCase();
+        //     console.log(`[${lastMessage.constructor.name}]: ${lastMessage.content}`);
+        //     console.log("-----\n");
+        // }
+        // ------------------ UnComment if needed  ------------------
 
     }
 }
